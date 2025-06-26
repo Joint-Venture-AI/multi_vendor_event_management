@@ -1,0 +1,25 @@
+services:
+  redis:
+      image: redis:7
+      container_name: redis
+      ports:
+        - "6379:6379"
+  multi_vendor_event_management:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5004:5004"
+    env_file:
+      - .env
+    volumes:
+      - multi_vendor_event_management-logs:/app/winston
+      - /app/node_modules
+      - .:/app
+    depends_on:
+      - redis
+
+  
+
+volumes:
+  multi_vendor_event_management-logs:
