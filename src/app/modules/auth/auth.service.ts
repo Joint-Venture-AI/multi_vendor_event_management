@@ -109,17 +109,17 @@ const verifyEmailToDB = async (payload: TVerifyEmail) => {
   if (!isExistUser) {
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-   const OTP =          await Otp.findOne({
+   const otp =          await Otp.findOne({
      user: isExistUser._id,
      one_time_password: oneTimeCode,
    });
-  if (!OTP) {
+  if (!otp) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "Please give the otp, check your email we send a code"
     );
   }
-  console.log(isExistUser.authentication?.oneTimeCode, "old code");
+  console.log(otp.one_time_password, "old code");
   if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
     throw new AppError(StatusCodes.BAD_REQUEST, "You provided wrong otp");
   }
