@@ -18,6 +18,7 @@ import {
 } from "../../../types/auth";
 import { TUser } from "../user/user.interface";
 import UserCacheManage from "../user/user.cacheManage";
+import { Otp } from "../otp/otp.model";
 //login
 const loginUserFromDB = async (payload: Partial<TLoginData>) => {
   const { email, password } = payload;
@@ -33,10 +34,17 @@ const loginUserFromDB = async (payload: Partial<TLoginData>) => {
   }
 
   //check user status
-  if (isExistUser.status === "delete") {
+  if (isExistUser.status === "DELETED") {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "Your account has been deleted, Please contact with admin"
+    );
+  }
+
+  if (isExistUser.status === "INACTIVE") {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Your account is inactive, Please contact with admin"
     );
   }
 
@@ -59,7 +67,7 @@ const loginUserFromDB = async (payload: Partial<TLoginData>) => {
 
   return { accessToken, user: userWithoutPassword };
 };
-
+//forgot password
 const forgetPasswordToDB = async (email: string) => {
   const isExistUser: Partial<TUser> = await User.isExistUserByEmail(email);
   if (!isExistUser) {
@@ -72,26 +80,25 @@ const forgetPasswordToDB = async (email: string) => {
   const value = {
     otp,
     email: isExistUser.email,
-    name: isExistUser.firstName!,
+    name: isExistUser.full_name!,
     theme: "theme-red" as
       | "theme-green"
       | "theme-red"
       | "theme-purple"
       | "theme-orange"
       | "theme-blue",
-    expiresIn: 15,
+    expiresIn: 30, // in minutes
   };
   const forgetPassword = emailTemplate.resetPassword(value);
 
   emailHelper.sendEmail(forgetPassword);
 
-  //save to DB
-  const authentication = {
-    oneTimeCode: otp,
-    expireAt: new Date(Date.now() + 15 * 60000),
-  };
 
-  await User.findOneAndUpdate({ email }, { $set: { authentication } });
+  await Otp.create({
+    user: isExistUser._id,
+    one_time_password: otp,
+    expires_at: new Date(Date.now() + value.expiresIn * 60000),
+  });
 };
 
 //verify email

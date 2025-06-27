@@ -1,13 +1,18 @@
 import { Model, Types } from "mongoose";
 
 export type TUser = {
+  _id: Types.ObjectId;
+  
   email: string;
   password: string;
+  full_name?: string;
   role: "ADMIN" | "BUYER" | "SELLER";
   status: "ACTIVE" | "DELETED" | "INACTIVE";
   verified?: boolean;
   fcmToken?: string;
   login_provider?: "GOOGLE" | "APPLE" | "EMAIL";
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 export type UserModal = {
   isExistUserById(id: string): any;
