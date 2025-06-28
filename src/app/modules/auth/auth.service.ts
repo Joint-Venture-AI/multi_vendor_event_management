@@ -93,7 +93,6 @@ const forgetPasswordToDB = async (email: string) => {
 
   emailHelper.sendEmail(forgetPassword);
 
-
   await Otp.create({
     user: isExistUser._id,
     one_time_password: otp,
@@ -109,23 +108,25 @@ const verifyEmailToDB = async (payload: TVerifyEmail) => {
   if (!isExistUser) {
     throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
-   const otp =          await Otp.findOne({
-     user: isExistUser._id,
-     one_time_password: oneTimeCode,
-   });
+  const otp = await Otp.findOne({
+    user: isExistUser._id,
+    one_time_password: oneTimeCode,
+  });
   if (!otp) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "Please give the otp, check your email we send a code"
     );
   }
-  console.log(otp.one_time_password, "old code");
-  if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
+
+
+
+  if (otp.one_time_code !== oneTimeCode) {
     throw new AppError(StatusCodes.BAD_REQUEST, "You provided wrong otp");
   }
 
   const date = new Date();
-  if (date > isExistUser.authentication?.expireAt) {
+  if (date > otp.expires_at) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "Otp already expired, Please try again"
@@ -135,24 +136,14 @@ const verifyEmailToDB = async (payload: TVerifyEmail) => {
   let message;
   let data;
 
-  await User.findOneAndUpdate(
-    { _id: isExistUser._id },
-    {
-      verified: true,
-      authentication: {
-        isResetPassword: true,
-        oneTimeCode: null,
-        expireAt: null,
-      },
-    }
-  );
+  await Otp.findByIdAndDelete(otp._id);
 
   //create token ;
   const createToken = cryptoToken();
   await ResetToken.create({
     user: isExistUser._id,
     token: createToken,
-    expireAt: new Date(Date.now() + 15 * 60000),
+    expireAt: new Date(Date.now() + 30 * 60000),
   });
   message =
     "Verification Successful: Please securely store and utilize this code for reset password";
