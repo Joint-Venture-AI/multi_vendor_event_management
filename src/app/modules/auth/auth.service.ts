@@ -92,10 +92,10 @@ const forgetPasswordToDB = async (email: string) => {
   const forgetPassword = emailTemplate.resetPassword(value);
 
   emailHelper.sendEmail(forgetPassword);
-
+  await User.findByIdAndUpdate(isExistUser._id, { is_reset_password: true });
   await Otp.create({
     user: isExistUser._id,
-    one_time_password: otp,
+    one_time_code: otp,
     expires_at: new Date(Date.now() + value.expiresIn * 60000),
   });
 };
@@ -118,8 +118,6 @@ const verifyEmailToDB = async (payload: TVerifyEmail) => {
       "Please give the otp, check your email we send a code"
     );
   }
-
-
 
   if (otp.one_time_code !== oneTimeCode) {
     throw new AppError(StatusCodes.BAD_REQUEST, "You provided wrong otp");
@@ -165,10 +163,8 @@ const resetPasswordToDB = async (
   }
 
   //user permission check
-  const isExistUser = await User.findById(isExistToken.user).select(
-    "+authentication"
-  );
-  if (!isExistUser?.authentication?.isResetPassword) {
+  const isExistUser = await User.findById(isExistToken.user);
+  if (!isExistUser?.is_reset_password) {
     throw new AppError(
       StatusCodes.UNAUTHORIZED,
       "You don't have permission to change the password. Please click again to 'Forgot Password'"

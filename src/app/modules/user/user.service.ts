@@ -6,7 +6,33 @@ import { TReturnUser, TUser } from "./user.interface";
 import { User } from "./user.model";
 
 const createUser = async (user: TUser): Promise<Partial<TUser>> => {
-  const newUser = await User.create(user);
+
+const newUserData={
+  email: user.email,
+  password: user.password,
+  full_name: user.full_name,
+  role: user.role || "BUYER",
+  status: user.status || "ACTIVE",
+  login_provider: user.login_provider || "EMAIL",
+  fcmToken: user.fcmToken || null,
+  verified: user.verified || false,
+  is_reset_password: user.is_reset_password || false,
+}
+
+  const newUser = await User.create(newUserData);
+   
+  if (!newUser || !newUser._id) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Failed to create user");
+  }
+  if(newUser.role === "ADMIN" || newUser.role==="BUYER"){
+    //create new buyer
+  }
+   
+  else if(newUser.role === "SELLER"){
+    //create new seller
+  }
+
+
   await UserCacheManage.updateUserCache(newUser._id.toString());
   return newUser;
 };
