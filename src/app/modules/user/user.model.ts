@@ -2,7 +2,6 @@ import { model, Schema } from "mongoose";
 import { TUser, UserModal } from "./user.interface";
 import bcrypt from "bcryptjs";
 import config from "../../../config";
-import mongooseLeanVirtuals from "mongoose-lean-virtuals";
 const userSchema = new Schema<TUser, UserModal>(
   {
     email: {
@@ -49,6 +48,10 @@ const userSchema = new Schema<TUser, UserModal>(
     fcmToken: {
       type: String,
       default: null,
+    },
+    is_reset_password: {
+      type: Boolean,
+      default: false,
     },
 
     login_provider: {

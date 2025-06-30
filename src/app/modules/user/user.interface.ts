@@ -11,6 +11,7 @@ export type TUser = {
   verified?: boolean;
   fcmToken?: string;
   login_provider?: "GOOGLE" | "APPLE" | "EMAIL";
+  is_reset_password?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };
